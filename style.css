@@ -1,0 +1,278 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #000;
+    color: white;
+}
+
+#container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#camera-view {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Garante que o vídeo preencha a tela */
+}
+
+#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#chat-header {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* Alinha os botões à direita */
+    padding: 5px 0;
+}
+
+#chat-buttons button {
+    background: none;
+    border: none;
+    font-size: 1.2em; /* Tamanho menor */
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.7); /* Cor mais discreta */
+    margin-left: 8px; /* Espaçamento menor */
+    transition: color 0.2s;
+}
+
+#chat-buttons button:hover {
+    color: white; /* Fica branco no hover */
+}
+
+/* Estilos para o chat maximizado */
+.maximized #interaction-area {
+    width: 100%;
+    height: 100%;
+    margin-top: 0;
+    border-radius: 0;
+    padding-top: 50px; /* Espaço para os botões no topo */
+}
+
+.maximized #analyze-btn {
+    display: none; /* Esconde o botão Analisar quando maximizado */
+}
+
+.maximized #toggle-maximize-btn {
+    position: fixed; /* Fica fixo no canto */
+    bottom: 20px;
+    right: 20px;
+    background-color: #FFC107; /* Amarelo Fagulha */
+    color: #333;
+    border-radius: 50%;
+    width: 50px; /* Tamanho menor */
+    height: 50px; /* Tamanho menor */
+    font-size: 1.5em; /* Tamanho do ícone */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.4);
+    z-index: 1000; /* Garante que fique por cima de tudo */
+}
+
+.maximized #toggle-maximize-btn::before {
+    content: '💬'; /* Ícone de mensagem */
+}
+
+.maximized #toggle-maximize-btn.minimized-icon {
+    content: '⤢'; /* Ícone de maximizar */
+}
+
+#chat-history {
+    flex-grow: 1; /* Permite que o histórico ocupe o espaço disponível */
+    width: 100%;
+    overflow-y: auto; /* Adiciona scroll se o conteúdo for muito grande */
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espaçamento entre as mensagens */
+    margin-bottom: 10px; /* Espaço antes do input */
+}
+
+.message {
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.message.ai {
+    background-color: rgba(255, 193, 7, 0.8); /* Amarelo Fagulha com transparência */
+    color: #333;
+    align-self: flex-start; /* Alinha à esquerda */
+    border-bottom-left-radius: 5px; /* Canto inferior esquerdo menos arredondado */
+}
+
+.message.user {
+    background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro com transparência */
+    color: white;
+    align-self: flex-end; /* Alinha à direita */
+    border-bottom-right-radius: 5px; /* Canto inferior direito menos arredondado */
+}
+
+#interaction-area {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 50px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column; /* Muda para coluna para empilhar elementos */
+    align-items: center;
+    justify-content: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#loading-fuse {
+    width: 80%;
+    height: 5px;
+    background-color: #555;
+    border-radius: 5px;
+    margin: 10px auto;
+    position: relative;
+    overflow: hidden;
+}
+
+#fuse-spark {
+    width: 100%;
+    height: 100%;
+    background-color: #FFC107; /* Amarelo Fagulha */
+    position: absolute;
+    left: -100%;
+    animation: burn-fuse 2s linear infinite;
+}
+
+@keyframes burn-fuse {
+    from {
+        left: -100%;
+    }
+    to {
+        left: 100%;
+    }
+}
+
+#analyze-btn {
+    background-color: #FFC107; /* Amarelo Fagulha */
+    color: #333;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 30px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.4);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+#flip-camera-btn {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.4);
+    transition: background-color 0.2s;
+}
+
+#flip-camera-btn svg {
+    width: 60%;
+    height: 60%;
+    fill: currentColor; /* Usa a cor do texto do botão */
+}
+
+#flip-camera-btn:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#analyze-btn:hover {
+    background-color: #FFD700;
+}
+
+#analyze-btn:active {
+    transform: scale(0.95);
+}
+
+#analyze-btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+#chat-controls {
+    display: flex;
+    width: 100%;
+    margin-top: 10px;
+}
+
+#user-input {
+    flex-grow: 1;
+    background-color: #333;
+    border: 1px solid #555;
+    color: white;
+    padding: 10px;
+    border-radius: 20px 0 0 20px; /* Cantos arredondados à esquerda */
+    font-size: 1em;
+    outline: none;
+}
+
+#send-btn {
+    background-color: #FFC107; /* Amarelo Fagulha */
+    color: #333;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+#mic-btn {
+    background-color: #4CAF50; /* Verde para o microfone */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 20px; /* Botão redondo */
+    margin-left: 10px; /* Espaçamento do botão de enviar */
+    transition: background-color 0.2s;
+}
+
+#mic-btn:hover {
+    background-color: #45a049;
+}
+
+#mic-btn.active {
+    background-color: #FFC107; /* Amarelo Fagulha quando ativo */
+    color: #333;
+}
+

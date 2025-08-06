@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fagulha em Campo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <video id="camera-view" autoplay playsinline></video>
+        <div id="overlay">
+            <div id="interaction-area">
+                <div id="loading-fuse" class="hidden">
+                    <div id="fuse-spark"></div>
+                </div>
+                <div id="chat-history"></div> <!-- Contêiner para o histórico do chat -->
+                <!-- Controles para o diálogo -->
+                <div id="chat-controls" class="hidden">
+                    <input type="text" id="user-input" placeholder="Escreva aqui...">
+                    <button id="send-btn">➤</button>
+                    <button id="mic-btn" title="Falar">🎤</button> <!-- Novo botão do microfone -->
+                </div>
+            </div>
+            <button id="analyze-btn">Analisar</button>
+            <button id="flip-camera-btn" title="Virar Câmera">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16.83 5L15 3H9L7.17 5H2v16h20V5h-5.17zM12 18c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-9c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/><path d="M7 10h-2v4h2v-4zm12 0h-2v4h2v-4z" transform="rotate(90 12 12)"/></svg>
+            </button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
