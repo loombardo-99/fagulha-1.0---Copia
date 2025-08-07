@@ -1,0 +1,16 @@
+# Ignorar arquivos de ambiente
+.env
+
+# Ignorar diretório de módulos do Node
+node_modules/
+
+# Ignorar logs e temporários
+*.log
+*.tmp
+
+# Ignorar arquivos de sistema
+.DS_Store
+thumbs.db
+
+# Ignorar arquivos de cache do Ollama
+.ollama/

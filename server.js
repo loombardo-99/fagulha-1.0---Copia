@@ -53,7 +53,7 @@ app.post('/analisar', async (req, res) => {
     console.log("--------------------------------------------------");
     console.log("Requisição recebida no backend Node.js.");
     try {
-        const { prompt: promptText, image: base64ImageData, audio: base64AudioData, searchResults, isInitialAnalysis } = req.body;
+        const { prompt: promptText, image: base64ImageData, audio: base64AudioData, searchResults, isInitialAnalysis, llavaDescription } = req.body;
 
         if (!promptText && !base64ImageData && !base64AudioData) {
             return res.status(400).json({ error: 'Nenhuma mídia enviada' });
@@ -64,11 +64,6 @@ app.post('/analisar', async (req, res) => {
 
         const ollamaIsRunning = await isOllamaRunning();
         const isDeviceOnline = await isOnline();
-
-        // Se estiver offline e for uma requisição com imagem, retorna erro
-        if (!isDeviceOnline && base64ImageData) {
-            return res.status(400).json({ error: 'Análise de imagem não disponível offline. Por favor, conecte-se à internet ou use apenas texto/áudio.' });
-        }
 
         let finalPrompt = promptText;
         if (searchResults) {
@@ -92,20 +87,51 @@ app.post('/analisar', async (req, res) => {
             ollamaModelToUse = "gemma:2b"; // Sempre gemma:2b para acompanhamento
             ollamaMessages = [{
                 role: "user",
-                content: finalPrompt || "Analise a mídia fornecida.",
+                content: `Contexto da Imagem: ${llavaDescription || '[Nenhuma descrição de imagem disponível]'}. Pergunta: ${finalPrompt || "Analise a mídia fornecida."}`,
                 images: base64ImageData ? [base64ImageData] : []
             }];
             // Nota: O Ollama ainda não tem suporte nativo a áudio multimodal como o Gemini.
             // Se houver áudio, ele será tratado como parte do prompt de texto.
-            if (base64AudioData) {
-                ollamaMessages[0].content = `Áudio: [dados de áudio]. ${ollamaMessages[0].content}`;
-            }
+            // if (base64AudioData) {
+            //     ollamaMessages[0].content = `Áudio: [dados de áudio]. ${ollamaMessages[0].content}`;
+            // }
             console.log(`Requisição de acompanhamento com ${ollamaModelToUse}.`);
         }
 
-        if (ollamaIsRunning) {
-            console.log(`Ollama está rodando. Usando modelo: ${ollamaModelToUse}`);
-            
+        // --- Lógica de Prioridade: Google Gemini (Online) vs. Ollama (Offline/Fallback) ---
+        if (isDeviceOnline && API_KEY) {
+            // Tenta usar o Google Gemini como primário se online e com API Key
+            try {
+                console.log("Online. Tentando Google Gemini como primário...");
+                return await tryGoogleGemini(req, res); // Usa a função auxiliar
+            } catch (geminiPrimaryError) {
+                console.error("Google Gemini primário falhou:", geminiPrimaryError.message);
+                // Se o Google Gemini falhar, tenta Ollama como fallback (se estiver rodando)
+                if (ollamaIsRunning) {
+                    console.log("Google Gemini falhou. Tentando Ollama como fallback...");
+                    // Reutiliza ollamaModelToUse e ollamaMessages já definidos
+                    const ollamaPayload = {
+                        model: ollamaModelToUse,
+                        messages: ollamaMessages,
+                        stream: false
+                    };
+
+                    try {
+                        const ollamaResponse = await axios.post(OLLAMA_API_URL, ollamaPayload, { timeout: 180000 });
+                        responseText = ollamaResponse.data.message.content;
+                        usedModel = `Ollama (Fallback - ${ollamaModelToUse})`;
+                    } catch (ollamaError) {
+                        console.error(`Erro ao comunicar com o Ollama (fallback - ${ollamaModelToUse}):`, ollamaError.message);
+                        throw new Error("Google Gemini falhou e Ollama fallback também falhou.");
+                    }
+                } else {
+                    throw new Error("Google Gemini falhou e Ollama não está disponível.");
+                }
+            }
+        } else if (ollamaIsRunning) {
+            // Se offline OU sem API Key, mas Ollama está rodando, usa Ollama como primário
+            console.log("Offline ou sem API Key. Usando Ollama como primário...");
+            // Reutiliza ollamaModelToUse e ollamaMessages já definidos
             const ollamaPayload = {
                 model: ollamaModelToUse,
                 messages: ollamaMessages,
@@ -115,19 +141,13 @@ app.post('/analisar', async (req, res) => {
             try {
                 const ollamaResponse = await axios.post(OLLAMA_API_URL, ollamaPayload, { timeout: 180000 });
                 responseText = ollamaResponse.data.message.content;
-                usedModel = `Ollama (${ollamaModelToUse})`;
+                usedModel = `Ollama (Primário - ${ollamaModelToUse})`;
             } catch (ollamaError) {
-                console.error(`Erro ao comunicar com o Ollama (${ollamaModelToUse}):`, ollamaError.message);
-                if (isDeviceOnline && API_KEY) {
-                    console.log("Ollama falhou. Tentando fallback para Google Gemini...");
-                    return await tryGoogleGemini(req, res); 
-                }
-                throw new Error("Ollama falhou e não há fallback disponível.");
+                console.error(`Erro ao comunicar com o Ollama (primário - ${ollamaModelToUse}):`, ollamaError.message);
+                throw new Error("Ollama primário falhou e não há fallback disponível.");
             }
-        } else if (isDeviceOnline && API_KEY) {
-            console.log("Ollama não está rodando. Usando Google Gemini como primário.");
-            return await tryGoogleGemini(req, res); 
         } else {
+            // Não há serviço de IA disponível
             throw new Error("Não há serviço de IA disponível. Verifique o Ollama ou sua conexão com a internet e API Key.");
         }
 
@@ -143,7 +163,7 @@ app.post('/analisar', async (req, res) => {
 
 // Função auxiliar para tentar a chamada ao Google Gemini
 async function tryGoogleGemini(req, res) {
-    const { prompt: promptText, image: base64ImageData, audio: base64AudioData, searchResults, llavaDescription } = req.body;
+    const { prompt: promptText, image: base64ImageData, audio: base64AudioData, searchResults, isInitialAnalysis, llavaDescription } = req.body;
     let finalPrompt = promptText;
     if (searchResults) {
         finalPrompt = `Com base nos seguintes resultados de uma busca na web: "${searchResults}". Responda à pergunta original do usuário: "${promptText}". Sintetize a informação de forma clara e direta.`;
