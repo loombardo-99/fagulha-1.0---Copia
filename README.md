@@ -1,6 +1,6 @@
 # Fagulha em Campo: IA Multimodal Sem Barreiras
 
-![Projeto Fagulha](URL_DA_IMAGEM_DO_PROJETO_SE_TIVER)
+![Projeto Fagulha](<img width="1408" height="768" alt="Image_fx - 2025-08-07T111335 361" src="https://github.com/user-attachments/assets/13546e32-5180-4f04-997c-fade22a89440" />)
 
 **Seu assistente de IA que funciona em qualquer lugar, com ou sem internet, projetado para levar conhecimento e acessibilidade a todos.**
 
